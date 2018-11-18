@@ -1,6 +1,9 @@
-const express = require('express'),  app= express(),
+const express = require('express'),  
+app= express(),
+expressSanitizer = require('express-sanitizer'),
 bodyParser = require('body-parser'),
 mongoose = require('mongoose'),
+request = require('request')
 methodOverride = require('method-override');
 
 
@@ -14,6 +17,7 @@ mongoose.connect('mongodb://localhost:27017/restful_blog_app', {useNewUrlParser:
 
 app.set("view engine", "ejs");
 app.use(express.static('public'))
+app.use(expressSanitizer())
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(methodOverride("_method"))
 
@@ -47,6 +51,7 @@ app.get('/blogs/new', (req,res) => {
 //Create Route
 
 app.post('/blogs', (req, res) => {
+  req.body.blog.blog = req.sanitize(req.body.blog.body)
   Blog.create(req.body.blog, (err, newBlog)=>{
     if (err) {
       res.render("new")
@@ -79,8 +84,9 @@ app.get('/blogs/:id/edit', (req, res) => {
   })
 })
 
-
+//Update Route
 app.put('/blogs/:id', (req, res) => {
+  req.body.blog.blog = req.sanitize(req.body.blog.body)
   Blog.findByIdAndUpdate(req.params.id, req.body.blog, (err, foundBlog) => {
     if(err){
       res.redirect('/blogs')
@@ -89,6 +95,8 @@ app.put('/blogs/:id', (req, res) => {
     }
   })
 })
+
+//Delete Route
 
 app.delete('/blogs/:id',(req, res) => {
   Blog.findByIdAndRemove(req.params.id, (err) => {
@@ -99,7 +107,6 @@ app.delete('/blogs/:id',(req, res) => {
     }
   })
 })
-
 
 
 
